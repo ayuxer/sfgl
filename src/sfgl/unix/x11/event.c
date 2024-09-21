@@ -43,12 +43,12 @@ static void handle_event(
 
 void sfgl_event_start_main_loop(sfgl_window_t *window, main_loop_callback loop)
 {
-    if (sfgl_window_was_closed(window))
+    if (sfgl_is_window_requested_for_closure(window))
         return;
     xcb_generic_event_t *event;
 
     while (true) {
-        event = xcb_poll_for_event(window->config->display->x11);
+        event = xcb_poll_for_event(window->display->x11);
         const unsigned int type = event ? event->response_type & ~0x80 : 0;
         if (type == XCB_RESIZE_REQUEST) {
             auto ev = (xcb_resize_request_event_t *)event;
@@ -57,7 +57,7 @@ void sfgl_event_start_main_loop(sfgl_window_t *window, main_loop_callback loop)
         } else if (type == XCB_CLIENT_MESSAGE) {
             auto ev = (xcb_client_message_event_t *)event;
             if (ev->data.data32[0] == window->close_atom->atom)
-                window->was_close_requested = true;
+                window->is_closure_requested = true;
         }
         handle_event(event, window, type, loop);
     }

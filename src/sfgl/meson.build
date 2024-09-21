@@ -1,7 +1,8 @@
 os = build_machine.system()
 if os == 'linux' or os == 'freebsd' or os == 'openbsd'
   sfgl_src = files(
-    'unix/x11/egl.c',
+    'graphics.c',
+    'opengl/context.c',
     'unix/x11/window.c',
     'unix/x11/event.c',
   )

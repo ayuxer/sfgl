@@ -32,7 +32,7 @@ typedef struct {
 typedef struct {
     int min_major_egl_version, min_minor_egl_version;
     EGLDisplay egl;
-} sfgl_init_egl_payload;
+} sfgl_init_opengl_payload;
 
 typedef struct {
     char *title;
