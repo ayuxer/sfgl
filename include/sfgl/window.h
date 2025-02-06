@@ -24,9 +24,11 @@ void sfgl_show_window(sfgl_window_t *window);
 
 void sfgl_hide_window(sfgl_window_t *window);
 
+bool sfgl_is_window_hidden(sfgl_window_t *window);
+
 void sfgl_modify_window(sfgl_window_t *win, sfgl_update_window_payload payload);
 
-char *sfgl_get_window_title(sfgl_window_t *window);
+const char *sfgl_get_window_title(sfgl_window_t *window);
 
 int sfgl_get_window_width(sfgl_window_t *window);
 
@@ -36,7 +38,7 @@ int sfgl_get_window_x(sfgl_window_t *window);
 
 int sfgl_get_window_y(sfgl_window_t *window);
 
-_Bool sfgl_is_window_requested_for_closure(sfgl_window_t *window);
+bool sfgl_should_window_close(sfgl_window_t *window);
 
 void sfgl_free_window(sfgl_window_t *window);
 

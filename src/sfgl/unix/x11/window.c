@@ -6,10 +6,6 @@
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 
-#define FAIL(name, err)                                                        \
-    (name) = NULL;                                                             \
-    return (err)
-
 static xcb_screen_t *get_screen(xcb_connection_t *c, int screen)
 {
     xcb_screen_iterator_t iter = xcb_setup_roots_iterator(xcb_get_setup(c));
@@ -23,10 +19,11 @@ enum sfgl_payload_result sfgl_get_preferred_display(
     sfgl_display_t **display, sfgl_get_preferred_display_payload payload
 )
 {
-    *display = malloc(sizeof(sfgl_window_t));
+    *display = malloc(sizeof(sfgl_display_t));
     if (((*display)->x11 = xcb_connect(NULL, &payload.screen_idx)) == NULL) {
         fprintf(stderr, "Failed to connect to X11 display server.\n");
-        FAIL(*display, FAILED_TO_CONNECT_TO_DISPLAY_SERVER);
+        free(*display);
+        return FAILED_TO_CONNECT_TO_DISPLAY_SERVER;
     }
     (*display)->screen_idx = payload.screen_idx;
     (*display)->root_of_screen_idx
@@ -39,7 +36,7 @@ sfgl_x11_init_window_colormap(sfgl_window_t *window, unsigned int visualid)
 {
     window->colormap = xcb_generate_id(window->display->x11);
 
-    auto err = xcb_request_check(
+    xcb_generic_error_t *err = xcb_request_check(
         window->display->x11,
         xcb_create_colormap_checked(
             window->display->x11, XCB_COLORMAP_ALLOC_NONE, window->colormap,
@@ -47,9 +44,10 @@ sfgl_x11_init_window_colormap(sfgl_window_t *window, unsigned int visualid)
         )
     );
     if (err) {
-        free(err);
         fprintf(stderr, "Failed to initialize X11 colormap.\n");
-        FAIL(window, FAILED_TO_INITIALIZE_COLORMAP);
+        free(window);
+        free(err);
+        return FAILED_TO_INITIALIZE_COLORMAP;
     }
 
     err = xcb_request_check(
@@ -60,9 +58,10 @@ sfgl_x11_init_window_colormap(sfgl_window_t *window, unsigned int visualid)
         )
     );
     if (err) {
-        free(err);
         fprintf(stderr, "Failed to override X11 window attributes.\n");
-        FAIL(window, FAILED_TO_CHANGE_WINDOW_ATTRIBUTES);
+        free(window);
+        free(err);
+        return FAILED_TO_CHANGE_WINDOW_ATTRIBUTES;
     }
 
     return SUCCESS;
@@ -101,9 +100,10 @@ enum sfgl_payload_result sfgl_create_window(
         )
     );
     if (err) {
-        free(err);
         fprintf(stderr, "Failed to create X11 window\n.");
-        FAIL(*window, FAILED_TO_CREATE_WINDOW);
+        free(err);
+        free(*window);
+        return FAILED_TO_CREATE_WINDOW;
     }
 
     (*window)->x = payload.x;
@@ -135,16 +135,36 @@ enum sfgl_payload_result sfgl_create_window(
     return SUCCESS;
 }
 
-void sfgl_show_window(sfgl_window_t *win)
+void sfgl_show_window(sfgl_window_t *window)
 {
-    xcb_map_window(win->display->x11, win->x11);
-    xcb_flush(win->display->x11);
+    if (!window || !window->display || !window->x11)
+        return;
+    xcb_map_window(window->display->x11, window->x11);
+    xcb_flush(window->display->x11);
 }
 
-void sfgl_hide_window(sfgl_window_t *win)
+void sfgl_hide_window(sfgl_window_t *window)
 {
-    xcb_unmap_window(win->display->x11, win->x11);
-    xcb_flush(win->display->x11);
+    if (!window || !window->display || !window->x11)
+        return;
+    xcb_unmap_window(window->display->x11, window->x11);
+    xcb_flush(window->display->x11);
+}
+
+bool sfgl_is_window_hidden(sfgl_window_t *window)
+{
+    if (!window || !window->display || !window->x11)
+        return true;
+
+    xcb_get_window_attributes_cookie_t cookie
+        = xcb_get_window_attributes(window->display->x11, window->x11);
+    xcb_get_window_attributes_reply_t *reply
+        = xcb_get_window_attributes_reply(window->display->x11, cookie, NULL);
+    if (!reply)
+        return true;
+    bool is_hidden = reply->map_state != XCB_MAP_STATE_VIEWABLE;
+    free(reply);
+    return is_hidden;
 }
 
 #define update(MASK, FIELD)                                                    \
@@ -158,7 +178,7 @@ void sfgl_modify_window(
     sfgl_window_t *window, sfgl_update_window_payload payload
 )
 {
-    if (sfgl_is_window_requested_for_closure(window))
+    if (sfgl_should_window_close(window))
         return;
     uint16_t mask = 0;
     xcb_configure_window_value_list_t values = { 0 };
@@ -181,9 +201,9 @@ void sfgl_modify_window(
     xcb_flush(window->display->x11);
 }
 
-char *sfgl_get_window_title(sfgl_window_t *window)
+const char *sfgl_get_window_title(sfgl_window_t *window)
 {
-    if (sfgl_is_window_requested_for_closure(window))
+    if (sfgl_should_window_close(window))
         return NULL;
     const xcb_get_property_cookie_t cookie = xcb_get_property(
         window->display->x11, 0, window->x11, XCB_ATOM_WM_NAME, XCB_ATOM_STRING,
@@ -205,35 +225,35 @@ char *sfgl_get_window_title(sfgl_window_t *window)
 
 int sfgl_get_window_width(sfgl_window_t *window)
 {
-    if (sfgl_is_window_requested_for_closure(window))
-        return 0;
+    if (sfgl_should_window_close(window))
+        return -1;
     return window->width;
 }
 
 int sfgl_get_window_height(sfgl_window_t *window)
 {
-    if (sfgl_is_window_requested_for_closure(window))
-        return 0;
+    if (sfgl_should_window_close(window))
+        return -1;
     return window->height;
 }
 
 int sfgl_get_window_x(sfgl_window_t *window)
 {
-    if (sfgl_is_window_requested_for_closure(window))
-        return 0;
+    if (sfgl_should_window_close(window))
+        return -1;
     return window->x;
 }
 
 int sfgl_get_window_y(sfgl_window_t *window)
 {
-    if (sfgl_is_window_requested_for_closure(window))
-        return 0;
+    if (sfgl_should_window_close(window))
+        return -1;
     return window->y;
 }
 
-bool sfgl_is_window_requested_for_closure(sfgl_window_t *window)
+bool sfgl_should_window_close(sfgl_window_t *window)
 {
-    return !window || window->is_closure_requested;
+    return !window || window->should_close;
 }
 
 void sfgl_free_window(sfgl_window_t *window)
@@ -241,6 +261,8 @@ void sfgl_free_window(sfgl_window_t *window)
     if (!window)
         return;
     xcb_disconnect(window->display->x11);
+    free(window->display->x11);
     free(window->display);
+    free(window->close_atom);
     free(window);
 }

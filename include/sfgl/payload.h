@@ -1,7 +1,7 @@
 #ifndef SFGL_PAYLOAD_H
 #define SFGL_PAYLOAD_H
 
-#include <EGL/egl.h>
+#include "sfgl/opengl/payload.h"
 
 enum sfgl_payload_result {
     SUCCESS = 0,
@@ -24,18 +24,13 @@ typedef struct {
 } sfgl_get_preferred_display_payload;
 
 typedef struct {
-    char *title;
+    const char *title;
     int width, height;
     int x, y;
 } sfgl_create_window_payload;
 
 typedef struct {
-    int min_major_egl_version, min_minor_egl_version;
-    EGLDisplay egl;
-} sfgl_init_opengl_payload;
-
-typedef struct {
-    char *title;
+    const char *title;
     unsigned int *width;
     unsigned int *height;
     unsigned int *x;

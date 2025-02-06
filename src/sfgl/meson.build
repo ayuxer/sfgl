@@ -5,6 +5,7 @@ if os == 'linux' or os == 'freebsd' or os == 'openbsd'
     'opengl/context.c',
     'unix/x11/window.c',
     'unix/x11/event.c',
+    'basic.c'
   )
 
   xcb_dep = dependency('xcb')
