@@ -12,3 +12,12 @@ OpenGL-based rendering and windowing library.
 * [x] Platform: UNIX-like systems, X11 via XCB
 * [ ] Platform: Windows
 * [ ] Platform: macOS
+
+## Compiling
+
+**Dependencies:** `libxcb` `egl`
+
+```
+meson setup build
+ninja -C build
+```
