@@ -1,15 +1,12 @@
-#include "sfgl/opengl/context.h"
-#include "sfgl/payload.h"
-#include "sfgl/window.h"
+#include "felidae/opengl/context.h"
+#include "felidae/common/payload.h"
+#include "felidae/windowing/core.h"
 #include <EGL/eglext.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#ifdef __sfgl_x11__
-#include "unix/x11/window.c"
-#endif
-
-enum sfgl_payload_result sfgl_check_api_extensions(void)
+enum felidae_payload_result felidae_check_api_extensions(void)
 {
     const char *client_extensions
         = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
@@ -21,7 +18,8 @@ enum sfgl_payload_result sfgl_check_api_extensions(void)
     return SUCCESS;
 }
 
-enum sfgl_payload_result sfgl_opengl_init(sfgl_init_opengl_payload payload)
+enum felidae_payload_result
+felidae_opengl_init(felidae_init_opengl_payload payload)
 {
     EGLint major, minor;
     if (!eglInitialize(payload.egl, &major, &minor)) {
@@ -45,11 +43,11 @@ enum sfgl_payload_result sfgl_opengl_init(sfgl_init_opengl_payload payload)
     return SUCCESS;
 }
 
-enum sfgl_payload_result sfgl_graphics_create_context(
-    struct sfgl_graphics_context **ctx, sfgl_window_t *window
+enum felidae_payload_result felidae_graphics_create_context(
+    struct felidae_graphics_context **ctx, felidae_window_t *window
 )
 {
-    *ctx = malloc(sizeof(struct sfgl_graphics_context));
+    *ctx = malloc(sizeof(struct felidae_graphics_context));
 
     (*ctx)->display = eglGetPlatformDisplay(
         EGL_PLATFORM_XCB_EXT, window->display->x11,
@@ -62,9 +60,10 @@ enum sfgl_payload_result sfgl_graphics_create_context(
         return CANT_OPEN_DISPLAY;
     }
 
-    sfgl_opengl_init((sfgl_init_opengl_payload) { .egl = (*ctx)->display,
-                                                  .min_major_egl_version = 1,
-                                                  .min_minor_egl_version = 4 });
+    felidae_opengl_init((felidae_init_opengl_payload
+    ) { .egl = (*ctx)->display,
+        .min_major_egl_version = 1,
+        .min_minor_egl_version = 4 });
 
     const EGLint egl_config_attribs[] = { EGL_SURFACE_TYPE,
                                           EGL_WINDOW_BIT,
@@ -113,8 +112,8 @@ enum sfgl_payload_result sfgl_graphics_create_context(
         return FAILED_TO_GET_VISUAL_ID;
     }
 
-#ifdef __sfgl_x11__
-    sfgl_x11_init_window_colormap(window, visualid);
+#ifdef __felidae_x11__
+    felidae_x11_init_window_colormap(window, visualid);
 #endif
 
     (*ctx)->surface = eglCreatePlatformWindowSurface(

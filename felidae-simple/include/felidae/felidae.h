@@ -1,13 +1,16 @@
-#ifndef SFGL_BASIC_H
-#define SFGL_BASIC_H
+#ifndef FELIDAE_BASIC_H
+#define FELIDAE_BASIC_H
 
-#include "sfgl/event.h"
+#include "felidae/common/payload.h"
+#include "felidae/opengl/graphics.h"
+#include "felidae/windowing/core.h"
+#include "felidae/windowing/event.h"
 
 void MakeWindow(
     int width, int height, const char *title, int preferred_display
 );
 
-struct sfgl_event *PollEvent();
+struct felidae_event *PollEvent();
 
 bool ShouldWindowClose();
 
@@ -17,7 +20,7 @@ void HideWindow();
 
 bool IsWindowHidden();
 
-void SFGLFree();
+void FelidaeFree();
 
 int GetWindowWidth();
 

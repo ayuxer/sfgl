@@ -1,5 +1,5 @@
-#include "sfgl/window.h"
-#include "sfgl/payload.h"
+#include "felidae/windowing/core.h"
+#include "felidae/common/payload.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,11 +15,11 @@ static xcb_screen_t *get_screen(xcb_connection_t *c, int screen)
     return NULL;
 }
 
-enum sfgl_payload_result sfgl_get_preferred_display(
-    sfgl_display_t **display, sfgl_get_preferred_display_payload payload
+enum felidae_payload_result felidae_get_preferred_display(
+    felidae_display_t **display, felidae_get_preferred_display_payload payload
 )
 {
-    *display = malloc(sizeof(sfgl_display_t));
+    *display = malloc(sizeof(felidae_display_t));
     if (((*display)->x11 = xcb_connect(NULL, &payload.screen_idx)) == NULL) {
         fprintf(stderr, "Failed to connect to X11 display server.\n");
         free(*display);
@@ -31,8 +31,9 @@ enum sfgl_payload_result sfgl_get_preferred_display(
     return SUCCESS;
 }
 
-enum sfgl_payload_result
-sfgl_x11_init_window_colormap(sfgl_window_t *window, unsigned int visualid)
+enum felidae_payload_result felidae_x11_init_window_colormap(
+    felidae_window_t *window, unsigned int visualid
+)
 {
     window->colormap = xcb_generate_id(window->display->x11);
 
@@ -67,12 +68,12 @@ sfgl_x11_init_window_colormap(sfgl_window_t *window, unsigned int visualid)
     return SUCCESS;
 }
 
-enum sfgl_payload_result sfgl_create_window(
-    sfgl_window_t **window, sfgl_display_t *display,
-    sfgl_create_window_payload payload
+enum felidae_payload_result felidae_create_window(
+    felidae_window_t **window, felidae_display_t *display,
+    felidae_create_window_payload payload
 )
 {
-    *window = malloc(sizeof(sfgl_window_t));
+    *window = malloc(sizeof(felidae_window_t));
     (*window)->display = display;
     (*window)->x11 = xcb_generate_id(display->x11);
     xcb_screen_t *screen = get_screen(display->x11, display->screen_idx);
@@ -135,7 +136,7 @@ enum sfgl_payload_result sfgl_create_window(
     return SUCCESS;
 }
 
-void sfgl_show_window(sfgl_window_t *window)
+void felidae_show_window(felidae_window_t *window)
 {
     if (!window || !window->display || !window->x11)
         return;
@@ -143,7 +144,7 @@ void sfgl_show_window(sfgl_window_t *window)
     xcb_flush(window->display->x11);
 }
 
-void sfgl_hide_window(sfgl_window_t *window)
+void felidae_hide_window(felidae_window_t *window)
 {
     if (!window || !window->display || !window->x11)
         return;
@@ -151,7 +152,7 @@ void sfgl_hide_window(sfgl_window_t *window)
     xcb_flush(window->display->x11);
 }
 
-bool sfgl_is_window_hidden(sfgl_window_t *window)
+bool felidae_is_window_hidden(felidae_window_t *window)
 {
     if (!window || !window->display || !window->x11)
         return true;
@@ -174,11 +175,11 @@ bool sfgl_is_window_hidden(sfgl_window_t *window)
         window->FIELD = *payload.FIELD;                                        \
     }
 
-void sfgl_modify_window(
-    sfgl_window_t *window, sfgl_update_window_payload payload
+void felidae_modify_window(
+    felidae_window_t *window, felidae_update_window_payload payload
 )
 {
-    if (sfgl_should_window_close(window))
+    if (felidae_should_window_close(window))
         return;
     uint16_t mask = 0;
     xcb_configure_window_value_list_t values = { 0 };
@@ -201,9 +202,9 @@ void sfgl_modify_window(
     xcb_flush(window->display->x11);
 }
 
-const char *sfgl_get_window_title(sfgl_window_t *window)
+const char *felidae_get_window_title(felidae_window_t *window)
 {
-    if (sfgl_should_window_close(window))
+    if (felidae_should_window_close(window))
         return NULL;
     const xcb_get_property_cookie_t cookie = xcb_get_property(
         window->display->x11, 0, window->x11, XCB_ATOM_WM_NAME, XCB_ATOM_STRING,
@@ -223,40 +224,40 @@ const char *sfgl_get_window_title(sfgl_window_t *window)
     return value;
 }
 
-int sfgl_get_window_width(sfgl_window_t *window)
+int felidae_get_window_width(felidae_window_t *window)
 {
-    if (sfgl_should_window_close(window))
+    if (felidae_should_window_close(window))
         return -1;
     return window->width;
 }
 
-int sfgl_get_window_height(sfgl_window_t *window)
+int felidae_get_window_height(felidae_window_t *window)
 {
-    if (sfgl_should_window_close(window))
+    if (felidae_should_window_close(window))
         return -1;
     return window->height;
 }
 
-int sfgl_get_window_x(sfgl_window_t *window)
+int felidae_get_window_x(felidae_window_t *window)
 {
-    if (sfgl_should_window_close(window))
+    if (felidae_should_window_close(window))
         return -1;
     return window->x;
 }
 
-int sfgl_get_window_y(sfgl_window_t *window)
+int felidae_get_window_y(felidae_window_t *window)
 {
-    if (sfgl_should_window_close(window))
+    if (felidae_should_window_close(window))
         return -1;
     return window->y;
 }
 
-bool sfgl_should_window_close(sfgl_window_t *window)
+bool felidae_should_window_close(felidae_window_t *window)
 {
     return !window || window->should_close;
 }
 
-void sfgl_free_window(sfgl_window_t *window)
+void felidae_free_window(felidae_window_t *window)
 {
     if (!window)
         return;

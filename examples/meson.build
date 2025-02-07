@@ -1,2 +1,2 @@
 executable('example', 'simple.c',
-  dependencies : [sfgl_dep])
+  dependencies : [libfelidae_simple_dep])

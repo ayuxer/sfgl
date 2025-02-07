@@ -1,23 +1,58 @@
-# sfgl
+# felidae
 
-**S**traight**f**orward **G**raphics **L**ibrary: Lightweight, minimal, crossplatform
-OpenGL-based rendering and windowing library.
+Lightweight, minimal, crossplatform, and straightforward OpenGL- and Vulkan- based 
+rendering and windowing libraries.
 
-## Status of this project
+## Scope of this project
 
-* [x] Window initialization
-* [ ] Drawing of geometric shapes
-* [ ] Font rendering
-* [ ] Lossless render scaling / aspect ratio
-* [x] Platform: UNIX-like systems, X11 via XCB
-* [ ] Platform: Windows
-* [ ] Platform: macOS
+### felidae-common
+
+- [x] Graphics API-agnostic payload definitions
+
+### felidae-graphics
+
+**Dependencies:** `egl`
+
+- [x] Windowing subproject interoperability: Unix/X11
+- [ ] Windowing subproject interoperability: Win32
+- [ ] Drawing of geometric shapes
+- [ ] Font rendering
+- [ ] GLSL shaders
+- [ ] SPIR-V intermediate shader language support
+- [ ] Lossless render scaling / aspect ratio
+
+### felidae-windowing
+
+**Dependencies (UNIX-like systems):** `libxcb`
+
+- [x] Unix/X11
+  - [x] Window initialization
+  - [x] Colormap initialization
+  - [x] Multi-monitor handling
+  - [x] Window property updating
+- [ ] Win32
+  - [ ] Window initialization
+  - [ ] Colormap initialization
+  - [ ] Multi-monitor handling
+  - [ ] Window property updating
+- [x] Poll-based event API
+
+### felidae-simple
+
+**Dependencies:** `felidae-*`
+
+- [x] High-level windowing API
+  - [x] Window and colormap initialization
+  - [x] Multi-monitor support
+  - [ ] Window property updating
+- [ ] High-level OpenGL graphics
+  - [ ] Drawing of geometric shapes
+  - [ ] Font rendering
+  - [ ] Shading languages support
 
 ## Compiling
 
-**Dependencies:** `libxcb` `egl`
-
-```
+```bash
 meson setup build
 ninja -C build
 ```

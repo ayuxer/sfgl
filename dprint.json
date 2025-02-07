@@ -1,0 +1,9 @@
+{
+  "markdown": {
+    "lineWidth": 80
+  },
+  "excludes": [],
+  "plugins": [
+    "https://plugins.dprint.dev/markdown-0.17.8.wasm"
+  ]
+}

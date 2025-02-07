@@ -1,9 +1,7 @@
-#ifndef SFGL_PAYLOAD_H
-#define SFGL_PAYLOAD_H
+#ifndef FELIDAE_PAYLOAD_H
+#define FELIDAE_PAYLOAD_H
 
-#include "sfgl/opengl/payload.h"
-
-enum sfgl_payload_result {
+enum felidae_payload_result {
     SUCCESS = 0,
     MISSING_API_EXTENSIONS = 1,
     FAILED_TO_CONNECT_TO_DISPLAY_SERVER = 2,
@@ -21,13 +19,13 @@ enum sfgl_payload_result {
 
 typedef struct {
     int screen_idx;
-} sfgl_get_preferred_display_payload;
+} felidae_get_preferred_display_payload;
 
 typedef struct {
     const char *title;
     int width, height;
     int x, y;
-} sfgl_create_window_payload;
+} felidae_create_window_payload;
 
 typedef struct {
     const char *title;
@@ -35,6 +33,6 @@ typedef struct {
     unsigned int *height;
     unsigned int *x;
     unsigned int *y;
-} sfgl_update_window_payload;
+} felidae_update_window_payload;
 
 #endif

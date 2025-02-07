@@ -1,11 +1,12 @@
-#include "sfgl/event.h"
-#include "sfgl/window.h"
+#include "felidae/windowing/event.h"
+#include "felidae/windowing/core.h"
 #include <stdlib.h>
 #include <xcb/xcb.h>
 #include <xcb/xproto.h>
 
-static bool
-init_sfgl_event(struct sfgl_event *input, xcb_generic_event_t *event, int type)
+static bool init_felidae_event(
+    struct felidae_event *input, xcb_generic_event_t *event, int type
+)
 {
     switch (type) {
     case XCB_KEY_PRESS: {
@@ -27,7 +28,7 @@ init_sfgl_event(struct sfgl_event *input, xcb_generic_event_t *event, int type)
     }
 }
 
-struct sfgl_event *sfgl_event_poll(sfgl_window_t *window)
+struct felidae_event *felidae_event_poll(felidae_window_t *window)
 {
     if (!window)
         return NULL;
@@ -44,12 +45,12 @@ struct sfgl_event *sfgl_event_poll(sfgl_window_t *window)
         if (ev->data.data32[0] == window->close_atom->atom)
             window->should_close = true;
     }
-    struct sfgl_event *out = malloc(sizeof(struct sfgl_event));
+    struct felidae_event *out = malloc(sizeof(struct felidae_event));
     if (!out) {
         free(event);
         return NULL;
     }
-    if (!init_sfgl_event(out, event, type)) {
+    if (!init_felidae_event(out, event, type)) {
         free(out);
         free(event);
         return NULL;

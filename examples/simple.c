@@ -1,8 +1,7 @@
-#include <sfgl/basic.h>
-#include <sfgl/event.h>
+#include <felidae/felidae.h>
 #include <stdio.h>
 
-void listen(struct sfgl_event *event)
+void listen(struct felidae_event *event)
 {
     int width = GetWindowWidth(), height = GetWindowHeight(), x = GetWindowX(),
         y = GetWindowY();
@@ -23,11 +22,11 @@ int main()
     MakeWindow(640, 480, "Hello, world!", 0);
     RevealWindow();
     while (!ShouldWindowClose()) {
-        struct sfgl_event *event = PollEvent();
+        struct felidae_event *event = PollEvent();
         if (event) {
             listen(event);
         }
     }
-    SFGLFree();
+    FelidaeFree();
     return 0;
 }

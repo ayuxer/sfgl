@@ -3,6 +3,8 @@ project('sfgl', 'c',
   version : '0.1.0',
   default_options : ['c_std=c23', 'warning_level=3'])
 
-subdir('include')
-subdir('src/sfgl')
+subdir('felidae-common')
+subdir('felidae-windowing')
+subdir('felidae-opengl')
+subdir('felidae-simple')
 subdir('examples')
