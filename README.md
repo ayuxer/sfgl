@@ -1,6 +1,6 @@
 # felidae
 
-Lightweight, minimal, crossplatform, and straightforward OpenGL- and Vulkan- based 
+Lightweight, minimal, crossplatform, and straightforward OpenGL- (?...and futurely Vulkan-) based 
 rendering and windowing libraries.
 
 ## Scope of this project
