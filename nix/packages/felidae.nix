@@ -6,7 +6,7 @@
   pkg-config,
   pkgs,
 }: let
-  pname = "sfgl";
+  pname = "felidae";
 in
   stdenv.mkDerivation {
     inherit pname;
