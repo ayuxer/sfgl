@@ -21,7 +21,8 @@ static const char *const FELIDAE_PAYLOAD_MESSAGES[] = {
     [FAILED_TO_GET_VISUAL_ID] = "Could not obtain visual ID",
     [FAILED_TO_INITIALIZE_COLORMAP] = "Failed to initialize colormap",
     [FAILED_TO_CREATE_WINDOW] = "Window creation failed",
-    [FAILED_TO_CHANGE_WINDOW_ATTRIBUTES] = "Could not change window attributes",
+    [FAILED_TO_CHANGE_WINDOW_ATTRIBUTES]
+    = "Failed to override window attributes",
     [FAILED_TO_CREATE_WINDOW_SURFACE] = "Failed to create window surface",
     [OUTDATED_EGL] = "EGL version is outdated",
     [FAILED_TO_BIND_OPENGL] = "Failed to bind OpenGL context",
@@ -51,7 +52,10 @@ const char *felidae_get_payload_result_message(enum felidae_payload_result input
     if (BASIC.failed || !BASIC.window)                                         \
     return X
 
-void MakeWindow(int width, int height, const char *title, int preferred_display)
+void MakeWindow(
+    int width, int height, const char *title, int preferred_display, int x,
+    int y
+)
 {
     felidae_window_t *window;
     felidae_display_t *display;
@@ -65,7 +69,7 @@ void MakeWindow(int width, int height, const char *title, int preferred_display)
     result = felidae_create_window(
         &window, display,
         (felidae_create_window_payload
-        ) { .title = title, .width = width, .height = height, .x = 0, .y = 0 }
+        ) { .title = title, .width = width, .height = height, .x = x, .y = x }
     );
     proceed("window")
     {

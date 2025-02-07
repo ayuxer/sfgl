@@ -7,7 +7,8 @@
 #include "felidae/windowing/event.h"
 
 void MakeWindow(
-    int width, int height, const char *title, int preferred_display
+    int width, int height, const char *title, int preferred_display, int x,
+    int y
 );
 
 struct felidae_event *PollEvent();

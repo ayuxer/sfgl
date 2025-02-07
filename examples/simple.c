@@ -19,7 +19,7 @@ void listen(struct felidae_event *event)
 
 int main()
 {
-    MakeWindow(640, 480, "Hello, world!", 0);
+    MakeWindow(640, 480, "Hello, world!", 0, 0, 0);
     RevealWindow();
     while (!ShouldWindowClose()) {
         struct felidae_event *event = PollEvent();

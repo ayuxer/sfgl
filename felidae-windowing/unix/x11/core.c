@@ -21,7 +21,6 @@ enum felidae_payload_result felidae_get_preferred_display(
 {
     *display = malloc(sizeof(felidae_display_t));
     if (((*display)->x11 = xcb_connect(NULL, &payload.screen_idx)) == NULL) {
-        fprintf(stderr, "Failed to connect to X11 display server.\n");
         free(*display);
         return FAILED_TO_CONNECT_TO_DISPLAY_SERVER;
     }
@@ -45,8 +44,7 @@ enum felidae_payload_result felidae_x11_init_window_colormap(
         )
     );
     if (err) {
-        fprintf(stderr, "Failed to initialize X11 colormap.\n");
-        free(window);
+        felidae_free_window(window);
         free(err);
         return FAILED_TO_INITIALIZE_COLORMAP;
     }
@@ -59,8 +57,7 @@ enum felidae_payload_result felidae_x11_init_window_colormap(
         )
     );
     if (err) {
-        fprintf(stderr, "Failed to override X11 window attributes.\n");
-        free(window);
+        felidae_free_window(window);
         free(err);
         return FAILED_TO_CHANGE_WINDOW_ATTRIBUTES;
     }
@@ -101,7 +98,6 @@ enum felidae_payload_result felidae_create_window(
         )
     );
     if (err) {
-        fprintf(stderr, "Failed to create X11 window\n.");
         free(err);
         free(*window);
         return FAILED_TO_CREATE_WINDOW;
@@ -112,18 +108,11 @@ enum felidae_payload_result felidae_create_window(
     (*window)->width = payload.width;
     (*window)->height = payload.height;
 
-    if (payload.title) {
-        xcb_change_property(
-            display->x11, XCB_PROP_MODE_REPLACE, (*window)->x11,
-            XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen(payload.title),
-            payload.title
-        );
-    }
-
-    auto proto_cookie = xcb_intern_atom(display->x11, 1, 12, "WM_PROTOCOLS");
+    xcb_intern_atom_cookie_t proto_cookie
+        = xcb_intern_atom(display->x11, 1, 12, "WM_PROTOCOLS");
     xcb_intern_atom_reply_t *proto_reply
         = xcb_intern_atom_reply(display->x11, proto_cookie, 0);
-    auto close_cookie
+    xcb_intern_atom_cookie_t close_cookie
         = xcb_intern_atom(display->x11, 0, 16, "WM_DELETE_WINDOW");
     xcb_intern_atom_reply_t *close_reply
         = xcb_intern_atom_reply(display->x11, close_cookie, 0);
@@ -132,6 +121,14 @@ enum felidae_payload_result felidae_create_window(
         4, 32, 1, &close_reply->atom
     );
     (*window)->close_atom = close_reply;
+    free(proto_reply);
+
+    if (payload.title)
+        xcb_change_property(
+            display->x11, XCB_PROP_MODE_REPLACE, (*window)->x11,
+            XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen(payload.title),
+            payload.title
+        );
 
     return SUCCESS;
 }
@@ -192,13 +189,12 @@ void felidae_modify_window(
     if (payload.height)
         update(XCB_CONFIG_WINDOW_HEIGHT, height);
     xcb_configure_window_aux(window->display->x11, window->x11, mask, &values);
-    if (payload.title) {
+    if (payload.title)
         xcb_change_property(
             window->display->x11, XCB_PROP_MODE_REPLACE, window->x11,
             XCB_ATOM_WM_NAME, XCB_ATOM_STRING, 8, strlen(payload.title),
             payload.title
         );
-    }
     xcb_flush(window->display->x11);
 }
 
@@ -214,7 +210,7 @@ const char *felidae_get_window_title(felidae_window_t *window)
         = xcb_get_property_reply(window->display->x11, cookie, NULL);
     if (!reply)
         return NULL;
-    const int length = xcb_get_property_value_length(reply);
+    int length = xcb_get_property_value_length(reply);
     if (length == 0) {
         free(reply);
         return NULL;
@@ -226,30 +222,22 @@ const char *felidae_get_window_title(felidae_window_t *window)
 
 int felidae_get_window_width(felidae_window_t *window)
 {
-    if (felidae_should_window_close(window))
-        return -1;
-    return window->width;
+    return felidae_should_window_close(window) ? -1 : window->width;
 }
 
 int felidae_get_window_height(felidae_window_t *window)
 {
-    if (felidae_should_window_close(window))
-        return -1;
-    return window->height;
+    return felidae_should_window_close(window) ? -1 : window->height;
 }
 
 int felidae_get_window_x(felidae_window_t *window)
 {
-    if (felidae_should_window_close(window))
-        return -1;
-    return window->x;
+    return felidae_should_window_close(window) ? -1 : window->x;
 }
 
 int felidae_get_window_y(felidae_window_t *window)
 {
-    if (felidae_should_window_close(window))
-        return -1;
-    return window->y;
+    return felidae_should_window_close(window) ? -1 : window->y;
 }
 
 bool felidae_should_window_close(felidae_window_t *window)
@@ -261,9 +249,8 @@ void felidae_free_window(felidae_window_t *window)
 {
     if (!window)
         return;
-    xcb_disconnect(window->display->x11);
-    free(window->display->x11);
+    if (window->display)
+        xcb_disconnect(window->display->x11);
     free(window->display);
-    free(window->close_atom);
     free(window);
 }

@@ -6,3 +6,4 @@ build/
 meson-*
 .direnv
 result
+valgrind-out.txt
