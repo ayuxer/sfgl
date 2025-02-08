@@ -1,19 +1,22 @@
 #include <felidae/felidae.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void listen(struct felidae_event *event)
 {
-    int width = GetWindowWidth(), height = GetWindowHeight(), x = GetWindowX(),
-        y = GetWindowY();
+    if (event->kind != KEY_PRESS && event->kind != KEY_RELEASE)
+        return;
+    struct felidae_window_dimensions dimensions = GetWindowDimensions();
+    int width = dimensions.width, height = dimensions.height;
     const char *title = GetWindowTitle();
     printf(
-        "width=%d,height=%d,x=%d,y=%d,title=%s\n", width, height, x, y, title
+        "%d: width=%d,height=%d,title=%s\n", event->kind, width, height, title
     );
-    if (event->kind == KEY_PRESS)
-        printf(
-            "Key pressed: code=%d,timestamp=%d\n",
-            event->data.key_press.key_code, event->timestamp
-        );
+    char *type = event->kind == KEY_PRESS ? "pressed" : "released";
+    printf(
+        "Key %s: code=%d,timestamp=%d\n", type, event->data.key_press.key_code,
+        event->timestamp
+    );
     fflush(stdout);
 }
 
@@ -25,7 +28,11 @@ int main()
         struct felidae_event *event = PollEvent();
         if (event) {
             listen(event);
+            free(event);
         }
+        BeginRendering();
+        DrawBackground(37, 109, 123, 1);
+        FinishRendering();
     }
     FelidaeFree();
     return 0;

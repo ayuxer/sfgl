@@ -14,11 +14,15 @@
 typedef struct felidae_display felidae_display_t;
 typedef struct felidae_window felidae_window_t;
 
-enum felidae_payload_result felidae_get_preferred_display(
+struct felidae_window_dimensions {
+    int width, height;
+};
+
+felidae_payload_result felidae_get_preferred_display(
     felidae_display_t **display, felidae_get_preferred_display_payload payload
 );
 
-enum felidae_payload_result felidae_create_window(
+felidae_payload_result felidae_create_window(
     felidae_window_t **window, felidae_display_t *display,
     felidae_create_window_payload payload
 );
@@ -35,16 +39,13 @@ void felidae_modify_window(
 
 const char *felidae_get_window_title(felidae_window_t *window);
 
-int felidae_get_window_width(felidae_window_t *window);
-
-int felidae_get_window_height(felidae_window_t *window);
-
-int felidae_get_window_x(felidae_window_t *window);
-
-int felidae_get_window_y(felidae_window_t *window);
+struct felidae_window_dimensions
+felidae_get_window_dimensions(felidae_window_t *window);
 
 bool felidae_should_window_close(felidae_window_t *window);
 
 void felidae_free_window(felidae_window_t *window);
+
+unsigned int felidae_get_window_id(felidae_display_t *display);
 
 #endif

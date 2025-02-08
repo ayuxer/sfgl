@@ -1,7 +1,7 @@
-#ifndef FELIDAE_PAYLOAD_H
-#define FELIDAE_PAYLOAD_H
+#ifndef FELIDAE_COMMON_PAYLOAD_H
+#define FELIDAE_COMMON_PAYLOAD_H
 
-enum felidae_payload_result {
+enum felidae_payload_result_kind {
     SUCCESS = 0,
     MISSING_API_EXTENSIONS = 1,
     FAILED_TO_CONNECT_TO_DISPLAY_SERVER = 2,
@@ -14,7 +14,8 @@ enum felidae_payload_result {
     FAILED_TO_CREATE_WINDOW_SURFACE = 9,
     OUTDATED_EGL = 10,
     FAILED_TO_BIND_OPENGL = 11,
-    CANT_OPEN_DISPLAY = 12
+    CANT_OPEN_DISPLAY = 12,
+    OUT_OF_MEMORY = 13
 };
 
 typedef struct {
@@ -31,8 +32,20 @@ typedef struct {
     const char *title;
     unsigned int *width;
     unsigned int *height;
-    unsigned int *x;
-    unsigned int *y;
 } felidae_update_window_payload;
+
+typedef struct {
+    enum felidae_payload_result_kind kind;
+    const char *context;
+} felidae_payload_result;
+
+felidae_payload_result felidae_make_payload_result(
+    enum felidae_payload_result_kind kind, char *context
+);
+
+felidae_payload_result felidae_success(void);
+
+felidae_payload_result
+felidae_decontextualized(enum felidae_payload_result_kind kind);
 
 #endif

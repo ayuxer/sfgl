@@ -11,7 +11,7 @@ rendering and windowing libraries.
 
 ### felidae-graphics
 
-**Dependencies:** `egl`
+**Dependencies:** `gl` `egl`
 
 - [x] Windowing subproject interoperability: Unix/X11
 - [ ] Windowing subproject interoperability: Win32

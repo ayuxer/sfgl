@@ -6,6 +6,7 @@
 enum felidae_event_kind {
     KEY_PRESS = 1,
     KEY_RELEASE,
+    RESIZE,
 };
 
 struct felidae_key_press_data {
@@ -16,9 +17,15 @@ struct felidae_key_release_data {
     int key_code;
 };
 
+struct felidae_resize_data {
+    int new_width;
+    int new_height;
+};
+
 union felidae_event_data {
     struct felidae_key_press_data key_press;
     struct felidae_key_release_data key_release;
+    struct felidae_resize_data resize;
 };
 
 struct felidae_event {

@@ -12,7 +12,8 @@ struct felidae_graphics_context {
     EGLDisplay display;
 };
 
-enum felidae_payload_result
-felidae_opengl_init(felidae_init_opengl_payload payload);
+felidae_payload_result felidae_opengl_init(felidae_init_opengl_payload payload);
+
+void felidae_opengl_free(struct felidae_graphics_context *ctx);
 
 #endif

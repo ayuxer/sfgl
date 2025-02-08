@@ -2,7 +2,9 @@
 #define FELIDAE_BASIC_H
 
 #include "felidae/common/payload.h"
+#include "felidae/opengl/context.h"
 #include "felidae/opengl/graphics.h"
+#include "felidae/opengl/payload.h"
 #include "felidae/windowing/core.h"
 #include "felidae/windowing/event.h"
 
@@ -11,26 +13,32 @@ void MakeWindow(
     int y
 );
 
-struct felidae_event *PollEvent();
+struct felidae_event *PollEvent(void);
 
-bool ShouldWindowClose();
+void SetFramerateLimit(unsigned int limit);
 
-void RevealWindow();
+void BeginRendering(void);
 
-void HideWindow();
+void FinishRendering(void);
 
-bool IsWindowHidden();
+bool ShouldWindowClose(void);
 
-void FelidaeFree();
+void RevealWindow(void);
 
-int GetWindowWidth();
+void HideWindow(void);
 
-int GetWindowHeight();
+bool IsWindowHidden(void);
 
-int GetWindowX();
+void FelidaeFree(void);
 
-int GetWindowY();
+float GetDeltaTime(void);
 
-const char *GetWindowTitle();
+struct felidae_window_dimensions GetWindowDimensions(void);
+
+const char *GetWindowTitle(void);
+
+felidae_window_t *GetFelidaeWindow(void);
+
+felidae_graphics_context_t *GetGraphicsContext(void);
 
 #endif

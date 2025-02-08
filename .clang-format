@@ -4,4 +4,4 @@ AlignAfterOpenBracket: BlockIndent
 ColumnLimit: 80
 PointerAlignment: Right
 BreakBeforeBinaryOperators: All
-
+IndentCaseLabels: true

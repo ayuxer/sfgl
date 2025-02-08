@@ -22,6 +22,7 @@ in
     buildInputs = with pkgs; [
       xorg.libxcb
       libGL
+      glew
     ];
     installPhase = ''
       mkdir -p $out/lib

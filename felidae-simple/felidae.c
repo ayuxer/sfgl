@@ -1,55 +1,34 @@
 #include "felidae/felidae.h"
+#include "bits/time.h"
+#include "felidae/opengl/context.h"
+#include "felidae/opengl/graphics.h"
+#include "felidae/windowing/core.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+#include <time.h>
 
 struct felidae_basic_state {
     felidae_window_t *window;
     felidae_graphics_context_t *graphics;
-    bool failed;
+    unsigned int max_fps;
+    struct timespec time;
 };
 
 struct felidae_basic_state BASIC = { 0 };
 
-static const char *const FELIDAE_PAYLOAD_MESSAGES[] = {
-    [SUCCESS] = "Operation completed successfully",
-    [MISSING_API_EXTENSIONS] = "Required API extensions are not available",
-    [FAILED_TO_CONNECT_TO_DISPLAY_SERVER]
-    = "Could not establish connection to display server",
-    [FAILED_TO_INITIALIZE_EGL] = "Failed to initialize EGL",
-    [FAILED_TO_FIND_COMPATIBLE_EGL_CONFIG]
-    = "No compatible EGL configuration found",
-    [FAILED_TO_GET_VISUAL_ID] = "Could not obtain visual ID",
-    [FAILED_TO_INITIALIZE_COLORMAP] = "Failed to initialize colormap",
-    [FAILED_TO_CREATE_WINDOW] = "Window creation failed",
-    [FAILED_TO_CHANGE_WINDOW_ATTRIBUTES]
-    = "Failed to override window attributes",
-    [FAILED_TO_CREATE_WINDOW_SURFACE] = "Failed to create window surface",
-    [OUTDATED_EGL] = "EGL version is outdated",
-    [FAILED_TO_BIND_OPENGL] = "Failed to bind OpenGL context",
-    [CANT_OPEN_DISPLAY] = "Could not open display",
-};
-
-const char *felidae_get_payload_result_message(enum felidae_payload_result input
-)
-{
-    if (input >= 0 && input <= CANT_OPEN_DISPLAY) {
-        return FELIDAE_PAYLOAD_MESSAGES[input];
-    }
-    return "Unknown error";
-}
-
-#define proceed(TYPE)                                                          \
-    if (result) {                                                              \
+#define proceed(TYPE, FNC)                                                     \
+    result = felidae_##FNC;                                                    \
+    if (result.kind) {                                                         \
         printf(                                                                \
-            "Failed [%s]: %s\n", TYPE,                                         \
-            felidae_get_payload_result_message(result)                         \
+            "Failed [%s]: %s [%s/%d]\n", TYPE, result.context, __FILE__,       \
+            __LINE__                                                           \
         );                                                                     \
-        BASIC.failed = true;                                                   \
-    }                                                                          \
-    if (BASIC.failed)
+        abort();                                                               \
+    }
 
 #define precheck(X)                                                            \
-    if (BASIC.failed || !BASIC.window)                                         \
+    if (!BASIC.window || !BASIC.graphics)                                      \
     return X
 
 void MakeWindow(
@@ -57,49 +36,71 @@ void MakeWindow(
     int y
 )
 {
-    felidae_window_t *window;
     felidae_display_t *display;
-    felidae_graphics_context_t *graphics;
-    enum felidae_payload_result result = felidae_get_preferred_display(
-        &display,
-        (felidae_get_preferred_display_payload) { .screen_idx
-                                                  = preferred_display }
+    felidae_payload_result result;
+    proceed(
+        "display",
+        get_preferred_display(
+            &display,
+            (felidae_get_preferred_display_payload) { .screen_idx
+                                                      = preferred_display }
+        )
     );
-    proceed("display") { return; }
-    result = felidae_create_window(
-        &window, display,
-        (felidae_create_window_payload
-        ) { .title = title, .width = width, .height = height, .x = x, .y = x }
+    proceed(
+        "window",
+        create_window(
+            &BASIC.window, display,
+            (felidae_create_window_payload) { .title = title,
+                                              .width = width,
+                                              .height = height,
+                                              .x = x,
+                                              .y = y }
+        )
     );
-    proceed("window")
-    {
-        free(display);
-        return;
-    }
-    result = felidae_graphics_create_context(&graphics, window);
-    proceed("graphics")
-    {
-        free(window);
-        free(graphics);
-        return;
-    }
-    BASIC.graphics = graphics;
-    BASIC.window = window;
+    proceed("graphics", graphics_create_context(&BASIC.graphics, BASIC.window));
+    clock_gettime(CLOCK_MONOTONIC, &BASIC.time);
+}
+
+float GetDeltaTime(void)
+{
+    struct timespec time;
+    clock_gettime(CLOCK_MONOTONIC, &time);
+    return (time.tv_sec - BASIC.time.tv_sec)
+        + 1e-9f * (time.tv_nsec - BASIC.time.tv_nsec);
+}
+
+void SetFramerateLimit(unsigned int limit)
+{
+    precheck();
+    BASIC.max_fps = limit;
 }
 
 struct felidae_event *PollEvent()
 {
     precheck(NULL);
-    return felidae_event_poll(BASIC.window);
+    struct felidae_event *event = felidae_event_poll(BASIC.window);
+    return event;
 }
 
-bool ShouldWindowClose()
+void BeginRendering(void)
+{
+    precheck();
+    felidae_graphics_start(BASIC.window, BASIC.graphics);
+}
+
+void FinishRendering(void)
+{
+    precheck();
+    felidae_graphics_end(BASIC.window, BASIC.graphics);
+}
+
+bool ShouldWindowClose(void)
 {
     precheck(true);
     return felidae_should_window_close(BASIC.window);
 }
 
-void RevealWindow()
+void RevealWindow(void)
 {
     precheck();
     felidae_show_window(BASIC.window);
@@ -119,37 +120,35 @@ bool IsWindowHidden()
 
 void FelidaeFree()
 {
-    precheck();
-    felidae_free_window(BASIC.window);
-    free(BASIC.graphics);
+    if (BASIC.graphics) {
+        felidae_opengl_free(BASIC.graphics);
+        BASIC.graphics = NULL;
+    }
+    if (BASIC.window) {
+        felidae_free_window(BASIC.window);
+        BASIC.window = NULL;
+    }
 }
 
-int GetWindowWidth()
+struct felidae_window_dimensions GetWindowDimensions()
 {
-    precheck(-1);
-    return felidae_get_window_width(BASIC.window);
-}
-
-int GetWindowHeight()
-{
-    precheck(-1);
-    return felidae_get_window_height(BASIC.window);
-}
-
-int GetWindowX()
-{
-    precheck(-1);
-    return felidae_get_window_x(BASIC.window);
-}
-
-int GetWindowY()
-{
-    precheck(-1);
-    return felidae_get_window_y(BASIC.window);
+    return felidae_get_window_dimensions(BASIC.window);
 }
 
 const char *GetWindowTitle()
 {
     precheck(NULL);
     return felidae_get_window_title(BASIC.window);
+}
+
+felidae_window_t *GetFelidaeWindow()
+{
+    precheck(NULL);
+    return BASIC.window;
+}
+
+felidae_graphics_context_t *GetGraphicsContext()
+{
+    precheck(NULL);
+    return BASIC.graphics;
 }
