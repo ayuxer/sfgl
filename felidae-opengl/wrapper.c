@@ -8,7 +8,7 @@
 #include <stddef.h>
 
 struct felidae_graphics_wrapper_state {
-    felidae_gl_id program, vao, vbo;
+    felidae_gl_id program, vao, vbo, ebo, texture;
 };
 
 static struct felidae_graphics_wrapper_state GRAPHICS = { 0 };
@@ -35,23 +35,44 @@ felidae_graphics_init(felidae_window_t *_, felidae_graphics_context_t *ctx)
     auto err = compile_default_program(&GRAPHICS.program);
     if (err.kind)
         return err;
+
     float vertices[] = {
-        // positions         // colors
-        0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-        0.0f,  0.5f,  0.0f, 0.0f, 0.0f, 1.0f // top
+        // positions          // colors           // texture coords
+        0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
+        0.5f,  -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
+    };
+    unsigned int indices[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3 // second triangle
     };
     GRAPHICS.vao = felidae_generate_vao(true);
     GRAPHICS.vbo
         = felidae_generate_vbo(vertices, sizeof(vertices), STATIC_USAGE);
-    felidae_add_vertex_attribute(0, 3, FLOAT, 6 * sizeof(float), 0);
+    GRAPHICS.ebo = felidae_generate_ebo(indices, sizeof(indices), STATIC_USAGE);
+    felidae_add_vertex_attribute(0, 3, FLOAT, 8 * sizeof(float), 0);
     felidae_add_vertex_attribute(
-        1, 3, FLOAT, 6 * sizeof(float), 3 * sizeof(float)
+        1, 3, FLOAT, 8 * sizeof(float), 3 * sizeof(float)
+    );
+    felidae_add_vertex_attribute(
+        2, 2, FLOAT, 8 * sizeof(float), 6 * sizeof(float)
     );
     felidae_name_vertex_attribute(GRAPHICS.program, 0, "vertexPosition");
     felidae_name_vertex_attribute(GRAPHICS.program, 1, "vertexColor");
+    felidae_name_vertex_attribute(GRAPHICS.program, 2, "vertexTexCoord");
     felidae_unbind_vbo();
     felidae_unbind_vao();
+    struct felidae_gl_result res = felidae_load_texture(
+        "/home/violet/.local/src/felidae/examples/placeholder.jpg", 0,
+        CLAMP_TO_EDGE, BILINEAR
+    );
+    if (!res.success) {
+        return felidae_make_payload_result(
+            FAILED_TO_BIND_OPENGL, res.data.error_message
+        );
+    }
+    GRAPHICS.texture = res.data.id;
     return felidae_success();
 }
 
@@ -70,9 +91,10 @@ void felidae_graphics_end(
 )
 {
     glClear(GL_COLOR_BUFFER_BIT);
+    felidae_bind_texture(FIRST_UNIT, GRAPHICS.texture);
     felidae_use_program(GRAPHICS.program);
     felidae_bind_vao(GRAPHICS.vao);
-    felidae_draw_vertices(TRIANGLES, 0, 6);
+    felidae_draw_vertices_indexed(TRIANGLES, 6);
     eglSwapBuffers(ctx->display, ctx->surface);
 }
 

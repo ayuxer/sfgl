@@ -4,9 +4,10 @@ if os == 'linux' or os == 'freebsd' or os == 'openbsd'
     'graphics.c',
     'wrapper.c',
     'context.c',
-    '../third_party/glad/src/gl.c'
+    '../third_party/glad/src/gl.c',
+    '../third_party/stb/src/image.c'
   )
-  felidae_opengl_inc = include_directories('include', '../third_party/glad/include')
+  felidae_opengl_inc = include_directories('include', '../third_party/glad/include', '../third_party/stb/include')
 
   egl_dep = dependency('egl')
   math_dep = cc.find_library('m')

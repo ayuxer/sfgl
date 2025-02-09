@@ -7,18 +7,24 @@ constexpr const char DEFAULT_VSHADER[]
     = "#version 460 core \n"
       "in vec3 vertexPosition; \n"
       "in vec3 vertexColor; \n"
+      "in vec2 vertexTexCoord; \n"
+      "out vec2 fragTexCoord; \n"
       "out vec3 fragColor; \n"
       "void main() { \n"
-      "  gl_Position = vec4(vertexPosition, 1.0f); \n"
+      "  gl_Position = vec4(vertexPosition, 1.0); \n"
       "  fragColor = vertexColor; \n"
+      "  fragTexCoord = vertexTexCoord; \n"
       "} \n\0";
 
 constexpr const char DEFAULT_FSHADER[]
     = "#version 460 core \n"
-      "in vec3 fragColor;"
+      "in vec3 fragColor; \n"
+      "in vec2 fragTexCoord; \n"
       "out vec4 outputColor; \n"
+      "uniform sampler2D texture0; \n"
       "void main() { \n"
-      "  outputColor = vec4(fragColor, 1.0f); \n"
+      "  vec4 textureColor = texture(texture0, fragTexCoord); \n"
+      "  outputColor = textureColor; \n"
       "} \n\0";
 
 typedef unsigned int felidae_gl_id;
@@ -73,12 +79,23 @@ enum felidae_texture_wrap_mode {
 enum felidae_texture_filter_mode {
     NEAREST = GL_NEAREST,
     BILINEAR = GL_LINEAR,
+    MIPMAP_NEAREST = GL_NEAREST_MIPMAP_NEAREST,
+    MIPMAP_BILINEAR = GL_LINEAR_MIPMAP_LINEAR,
 };
 
 enum felidae_texture_type {
     ONE_DIMENSIONAL = GL_TEXTURE_1D,
     TWO_DIMENSIONAL = GL_TEXTURE_2D,
     THREE_DIMENSIONAL = GL_TEXTURE_3D,
+};
+
+union felidae_gl_result_data {
+    felidae_gl_id id;
+    char error_message[512];
+};
+struct felidae_gl_result {
+    bool success;
+    union felidae_gl_result_data data;
 };
 
 /**
@@ -89,15 +106,8 @@ enum felidae_texture_type {
  *
  * Source: https://www.khronos.org/opengl/wiki/Shader
  */
-union felidae_shader_compilation_data {
-    felidae_gl_id id;
-    char error_message[512];
-};
-
-typedef struct {
-    bool success;
-    union felidae_shader_compilation_data data;
-} felidae_shader_compilation_result;
+typedef union felidae_gl_result_data felidae_shader_compilation_data;
+typedef struct felidae_gl_result felidae_shader_compilation_result;
 
 enum felidae_shader_type {
     // A shader that processes rasterized vertices into a set of colors and a
@@ -222,5 +232,32 @@ void felidae_draw_vertices_indexed(
  * Polygon rendering type. Usually altered for debugging purposes.
  */
 void felidae_polygon_mode(enum felidae_polygon_mode_type mode);
+
+/**
+ * A texture is a set of data (usually an image or color) used to add detail to
+ * an object. This function allows you to load a local image as a texture.
+ * Arguments:
+ * - The path to the image file;
+ * - The mipmap level. Mipmaps are pre-optimized sequences of the given image at
+ * different resolutions;
+ * - The texture wrapping or repeating mode;
+ * - The type of mipmap to be used;
+ * - The texture filtering mode
+ */
+struct felidae_gl_result felidae_load_texture(
+    char *path, unsigned int mipmap_level, enum felidae_texture_wrap_mode wrap,
+    enum felidae_texture_filter_mode filter
+);
+
+// A texture can be bound to one or more locations for rendering. These
+// locations are called texture image units.
+enum felidae_texture_unit { FIRST_UNIT = GL_TEXTURE0 };
+
+/**
+ * Bind a texture to the current fragment shader.
+ */
+void felidae_bind_texture(
+    enum felidae_texture_unit unit, felidae_gl_id texture
+);
 
 #endif

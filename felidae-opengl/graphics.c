@@ -3,6 +3,8 @@
 #include <stdio.h>
 
 #include "felidae/opengl/graphics.h"
+#include <stb/image.h>
+#include <string.h>
 
 felidae_shader_compilation_result
 felidae_create_shader(const char *data, enum felidae_shader_type shader_type)
@@ -12,7 +14,7 @@ felidae_create_shader(const char *data, enum felidae_shader_type shader_type)
     glCompileShader(shader);
     int success;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    union felidae_shader_compilation_data output;
+    felidae_shader_compilation_data output;
     if (!success)
         glGetShaderInfoLog(shader, 512, NULL, output.error_message);
     else
@@ -56,7 +58,7 @@ felidae_shader_compilation_result felidae_create_program(
     }
     glLinkProgram(program);
     int success;
-    union felidae_shader_compilation_data output;
+    felidae_shader_compilation_data output;
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if (!success)
         glGetProgramInfoLog(program, 512, NULL, output.error_message);
@@ -141,4 +143,46 @@ void felidae_set_global_attribute_float(
 )
 {
     glUniform1f(glGetUniformLocation(program, name), value);
+}
+
+struct felidae_gl_result felidae_load_texture(
+    char *path, unsigned int mipmap_level, enum felidae_texture_wrap_mode wrap,
+    enum felidae_texture_filter_mode filter
+)
+{
+    int width, height, channels;
+    stbi_set_flip_vertically_on_load(true);
+    unsigned char *data = stbi_load(path, &width, &height, &channels, 0);
+    struct felidae_gl_result result;
+    if (!data) {
+        result.success = false;
+        strcpy(result.data.error_message, "Failed to decode image.");
+        return result;
+    }
+
+    felidae_gl_id texture;
+    glGenTextures(1, &texture);
+    glBindTexture(TWO_DIMENSIONAL, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
+    glTexImage2D(
+        TWO_DIMENSIONAL, mipmap_level, GL_RGB, width, height, 0, GL_RGB,
+        GL_UNSIGNED_BYTE, data
+    );
+    glGenerateMipmap(TWO_DIMENSIONAL);
+
+    stbi_image_free(data);
+    result.success = true;
+    result.data.id = texture;
+
+    return result;
+}
+
+void felidae_bind_texture(enum felidae_texture_unit unit, felidae_gl_id texture)
+{
+    glActiveTexture(unit);
+    glBindTexture(GL_TEXTURE_2D, texture);
 }
