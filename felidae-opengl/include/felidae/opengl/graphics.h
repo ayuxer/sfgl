@@ -5,17 +5,20 @@
 
 constexpr const char DEFAULT_VSHADER[]
     = "#version 460 core \n"
-      "layout (location = 0) in vec3 vertexPosition; \n"
+      "in vec3 vertexPosition; \n"
+      "in vec3 vertexColor; \n"
+      "out vec3 fragColor; \n"
       "void main() { \n"
-      "  gl_Position = vec4(vertexPosition.x, vertexPosition.y, "
-      "vertexPosition.z, 1.0); \n"
+      "  gl_Position = vec4(vertexPosition, 1.0f); \n"
+      "  fragColor = vertexColor; \n"
       "} \n\0";
 
 constexpr const char DEFAULT_FSHADER[]
     = "#version 460 core \n"
-      "out vec4 FragColor; \n"
+      "in vec3 fragColor;"
+      "out vec4 outputColor; \n"
       "void main() { \n"
-      "  FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f); \n"
+      "  outputColor = vec4(fragColor, 1.0f); \n"
       "} \n\0";
 
 typedef unsigned int felidae_gl_id;
@@ -44,6 +47,11 @@ enum felidae_usage_hint {
     STREAM_USAGE = GL_STREAM_DRAW,
 };
 
+enum felidae_polygon_mode_type {
+    WIREFRAME = GL_LINE,
+    FILL = GL_FILL,
+};
+
 // The data type of a vertex attribute.
 enum felidae_vertex_attrib_data_type {
     BYTE = GL_BYTE,
@@ -53,6 +61,24 @@ enum felidae_vertex_attrib_data_type {
     USHORT = GL_UNSIGNED_SHORT,
     INT = GL_INT,
     UINT = GL_UNSIGNED_INT,
+};
+
+enum felidae_texture_wrap_mode {
+    REPEAT = GL_REPEAT,
+    MIRRORED_REPEAT = GL_MIRRORED_REPEAT,
+    CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE,
+    CLAMP_TO_BORDER = GL_CLAMP_TO_BORDER
+};
+
+enum felidae_texture_filter_mode {
+    NEAREST = GL_NEAREST,
+    BILINEAR = GL_LINEAR,
+};
+
+enum felidae_texture_type {
+    ONE_DIMENSIONAL = GL_TEXTURE_1D,
+    TWO_DIMENSIONAL = GL_TEXTURE_2D,
+    THREE_DIMENSIONAL = GL_TEXTURE_3D,
 };
 
 /**
@@ -107,6 +133,15 @@ enum felidae_primitive_kind {
 felidae_vbo felidae_generate_vbo(
     const void *data, unsigned int len, enum felidae_usage_hint usage_hint
 );
+void felidae_unbind_vbo();
+
+/**
+ * Generates a single vertex buffer object.
+ */
+felidae_vbo felidae_generate_ebo(
+    const void *data, unsigned int len, enum felidae_usage_hint usage_hint
+);
+void felidae_unbind_ebo();
 
 /**
  * Creates a vertex or fragment shader.
@@ -126,6 +161,9 @@ felidae_shader_compilation_result felidae_create_program(
 void felidae_use_program(felidae_gl_id id);
 void felidae_delete_program(felidae_gl_id id);
 
+void felidae_delete_buffer(felidae_gl_id id);
+void felidae_delete_vao(felidae_gl_id id);
+
 /**
  * Vertex attributes work like context parameters to vertex shaders.
  * Arguments:
@@ -134,10 +172,18 @@ void felidae_delete_program(felidae_gl_id id);
  * - The data type of the attribute;
  * - The whole length of the vertex attribute structure,
  *   usually given by `<component count> * sizeof(<intended data type>)`;
+ * - The position offset.
  */
 void felidae_add_vertex_attribute(
     unsigned int layout_index, unsigned int count,
-    enum felidae_vertex_attrib_data_type data_type, unsigned int len
+    enum felidae_vertex_attrib_data_type data_type, unsigned int len, int offset
+);
+
+/**
+ * Binds a name to a vertex attribute.
+ */
+void felidae_name_vertex_attribute(
+    felidae_gl_id program, unsigned int layout_index, const char *name
 );
 
 /**
@@ -147,6 +193,7 @@ void felidae_add_vertex_attribute(
 
  */
 void felidae_bind_vao(felidae_gl_id id);
+void felidae_unbind_vao();
 
 /**
  * Arguments:
@@ -162,5 +209,18 @@ void felidae_draw_vertices(
     enum felidae_primitive_kind primitive_kind, int starting_index,
     int vertice_count
 );
+
+/**
+ * Draws a set of vertices given a primitive type, a vertice count,
+ * and an indexing EBO data type.
+ */
+void felidae_draw_vertices_indexed(
+    enum felidae_primitive_kind primitive_kind, int vertice_count
+);
+
+/**
+ * Polygon rendering type. Usually altered for debugging purposes.
+ */
+void felidae_polygon_mode(enum felidae_polygon_mode_type mode);
 
 #endif

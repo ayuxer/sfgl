@@ -127,8 +127,7 @@ felidae_payload_result felidae_graphics_create_context(
         return felidae_decontextualized(FAILED_TO_INITIALIZE_EGL);
     }
 
-    felidae_graphics_init(window, *ctx);
-    return felidae_success();
+    return felidae_graphics_init(window, *ctx);
 }
 
 void felidae_opengl_free(struct felidae_graphics_context *ctx)

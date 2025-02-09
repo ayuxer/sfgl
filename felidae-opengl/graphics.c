@@ -32,6 +32,17 @@ felidae_vbo felidae_generate_vbo(
     return vbo;
 }
 
+felidae_vbo felidae_generate_ebo(
+    const void *data, unsigned int len, enum felidae_usage_hint usage_hint
+)
+{
+    felidae_gl_id ebo;
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, len, data, usage_hint);
+    return ebo;
+}
+
 felidae_shader_compilation_result felidae_create_program(
     felidae_shader_compilation_result shaders[], unsigned int shaders_len
 )
@@ -39,8 +50,9 @@ felidae_shader_compilation_result felidae_create_program(
     felidae_gl_id program = glCreateProgram();
     for (unsigned int index = 0; index < shaders_len; index++) {
         felidae_shader_compilation_result shader = shaders[index];
-        if (shader.success)
-            glAttachShader(program, shader.data.id);
+        if (!shader.success)
+            return shader;
+        glAttachShader(program, shader.data.id);
     }
     glLinkProgram(program);
     int success;
@@ -61,15 +73,24 @@ felidae_shader_compilation_result felidae_create_program(
 
 void felidae_use_program(felidae_gl_id id) { glUseProgram(id); }
 
-void felidae_delete_program(felidae_gl_id id) { glDeleteShader(id); }
+void felidae_delete_program(felidae_gl_id id) { glDeleteProgram(id); }
+void felidae_delete_buffer(felidae_gl_id id) { glDeleteBuffers(1, &id); }
+void felidae_delete_vao(felidae_gl_id id) { glDeleteVertexArrays(1, &id); }
+
+void felidae_name_vertex_attribute(
+    felidae_gl_id program, unsigned int layout_index, const char *name
+)
+{
+    glBindAttribLocation(program, layout_index, name);
+}
 
 void felidae_add_vertex_attribute(
     unsigned int layout_index, unsigned int count,
-    enum felidae_vertex_attrib_data_type data_type, unsigned int len
+    enum felidae_vertex_attrib_data_type data_type, unsigned int len, int offset
 )
 {
     glVertexAttribPointer(
-        layout_index, count, data_type, GL_FALSE, len, (void *)0
+        layout_index, count, data_type, GL_FALSE, len, (void *)offset
     );
     glEnableVertexAttribArray(layout_index);
 }
@@ -91,4 +112,33 @@ void felidae_draw_vertices(
 )
 {
     glDrawArrays(primitive_kind, starting_index, vertice_count);
+}
+
+void felidae_draw_vertices_indexed(
+    enum felidae_primitive_kind primitive_kind, int vertice_count
+)
+{
+    glDrawElements(primitive_kind, vertice_count, GL_UNSIGNED_INT, 0);
+}
+
+void felidae_polygon_mode(enum felidae_polygon_mode_type mode)
+{
+    glPolygonMode(GL_FRONT_AND_BACK, mode);
+}
+
+void felidae_unbind_vao() { glBindVertexArray(0); }
+void felidae_unbind_vbo() { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+void felidae_unbind_ebo() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+
+void felidae_set_global_attribute_int(
+    felidae_gl_id program, const char *name, int value
+)
+{
+    glUniform1i(glGetUniformLocation(program, name), value);
+}
+void felidae_set_global_attribute_float(
+    felidae_gl_id program, const char *name, float value
+)
+{
+    glUniform1f(glGetUniformLocation(program, name), value);
 }

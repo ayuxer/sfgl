@@ -26,7 +26,11 @@ void felidae_graphics_end(
     felidae_window_t *window, felidae_graphics_context_t *ctx
 );
 
-void felidae_graphics_init(
+felidae_payload_result felidae_graphics_init(
+    felidae_window_t *window, felidae_graphics_context_t *ctx
+);
+
+void felidae_graphics_cleanup(
     felidae_window_t *window, felidae_graphics_context_t *ctx
 );
 
