@@ -1,6 +1,6 @@
 os = build_machine.system()
 if os == 'linux' or os == 'freebsd' or os == 'openbsd'
-  felidae_common_src = files('payload.c', 'platform.c')
+  felidae_common_src = files('payload.c')
   felidae_common_inc = include_directories('include')
   felidae_common_deps = []
 else

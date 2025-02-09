@@ -3,21 +3,11 @@
 #include <EGL/eglext.h>
 
 #include "felidae/common/payload.h"
-#include "felidae/opengl/graphics.h"
+#include "felidae/opengl/wrapper.h"
 #include "felidae/windowing/core.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define EGL_MIN_VER_MINOR 1
-#define EGL_MIN_VER_MAJOR 5
-#define OPENGL_MIN_VER_MAJOR 4
-#define OPENGL_MIN_VER_MINOR 6
-
-#define OPENGL_PROFILE                                                         \
-    EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT // use
-                                        // EGL_CONTEXT_OPENGL_TYPE_COMPATIBILITY_BIT
-                                        // for compatibility profile
 
 felidae_payload_result felidae_check_api_extensions(void)
 {

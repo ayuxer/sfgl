@@ -2,6 +2,7 @@ os = build_machine.system()
 if os == 'linux' or os == 'freebsd' or os == 'openbsd'
   felidae_opengl_src = files(
     'graphics.c',
+    'wrapper.c',
     'context.c',
     '../third_party/glad/src/gl.c'
   )

@@ -3,8 +3,8 @@
 
 #include "felidae/common/payload.h"
 #include "felidae/opengl/context.h"
-#include "felidae/opengl/graphics.h"
 #include "felidae/opengl/payload.h"
+#include "felidae/opengl/wrapper.h"
 #include "felidae/windowing/core.h"
 #include "felidae/windowing/event.h"
 

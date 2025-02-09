@@ -1,7 +1,7 @@
 #include "felidae/felidae.h"
 #include "bits/time.h"
 #include "felidae/opengl/context.h"
-#include "felidae/opengl/graphics.h"
+#include "felidae/opengl/wrapper.h"
 #include "felidae/windowing/core.h"
 #include <stdio.h>
 #include <stdlib.h>
