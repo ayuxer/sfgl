@@ -4,9 +4,7 @@
 #include "felidae/common/payload.h"
 #include "felidae/opengl/graphics.h"
 
-typedef struct {
-    float columns[4][4];
-} felidae_matrix;
+#include <cglm/cglm.h>
 
 typedef struct {
     float vertex_position[3];
@@ -21,7 +19,7 @@ typedef struct {
 
 typedef struct {
     felidae_gl_id texture;
-    felidae_matrix mvp;
+    mat4 mvp;
     felidae_gl_id texture_location, mvp_location;
 } felidae_uniforms;
 
@@ -41,6 +39,8 @@ void felidae_flush_vertices(felidae_batch_renderer *renderer);
 void felidae_set_texture(
     felidae_batch_renderer *renderer, felidae_gl_id texture
 );
+
+void felidae_set_mvp(felidae_batch_renderer *renderer, mat4 matrix);
 
 void felidae_push_vertex(
     felidae_batch_renderer *renderer, float x, float y, float z, float red,

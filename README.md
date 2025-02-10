@@ -1,6 +1,6 @@
 # felidae
 
-Lightweight, minimal, crossplatform, and straightforward OpenGL- (?...and futurely Vulkan-) based 
+Lightweight, minimal, crossplatform, and straightforward OpenGL-based 
 rendering and windowing libraries.
 
 ## Scope of this project
@@ -18,7 +18,6 @@ rendering and windowing libraries.
 - [ ] Drawing of geometric shapes
 - [ ] Font rendering
 - [ ] GLSL shaders
-- [ ] SPIR-V intermediate shader language support
 - [ ] Lossless render scaling / aspect ratio
 
 ### felidae-windowing
@@ -42,9 +41,9 @@ rendering and windowing libraries.
 **Dependencies:** `felidae-*`
 
 - [x] High-level windowing API
-  - [x] Window and colormap initialization
+  - [x] Window initialization
   - [x] Multi-monitor support
-  - [ ] Window property updating
+  - [x] Window property updating
 - [ ] High-level OpenGL graphics
   - [ ] Drawing of geometric shapes
   - [ ] Font rendering

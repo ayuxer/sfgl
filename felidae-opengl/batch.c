@@ -1,4 +1,5 @@
 #include "felidae/opengl/batch.h"
+#include "felidae/opengl/graphics.h"
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -72,10 +73,8 @@ void felidae_flush_vertices(felidae_batch_renderer *renderer)
     felidae_bind_texture(FIRST_UNIT, renderer->uniforms.texture);
 
     glUniform1i(renderer->uniforms.texture_location, 0);
-
     glUniformMatrix4fv(
-        renderer->uniforms.mvp_location, 1, GL_FALSE,
-        renderer->uniforms.mvp.columns[0]
+        renderer->uniforms.mvp_location, 1, GL_FALSE, renderer->uniforms.mvp[0]
     );
 
     felidae_bind_vbo(renderer->vbo);
@@ -99,15 +98,13 @@ void felidae_set_texture(
     renderer->uniforms.texture = texture;
 }
 
-void felidae_set_mvp(felidae_batch_renderer *renderer, felidae_matrix matrix)
+void felidae_set_mvp(felidae_batch_renderer *renderer, mat4 matrix)
 {
-    int comparison = memcmp(
-        &renderer->uniforms.mvp.columns, &matrix.columns, sizeof(felidae_matrix)
-    );
+    int comparison = memcmp(&renderer->uniforms.mvp, &matrix, sizeof(mat4));
     if (comparison == 0)
         return;
     felidae_flush_vertices(renderer);
-    renderer->uniforms.mvp = matrix;
+    memcpy(&renderer->uniforms.mvp, matrix, sizeof(float) * 16);
 }
 
 void felidae_push_vertex(

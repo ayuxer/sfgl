@@ -85,13 +85,13 @@ struct felidae_event *PollEvent()
 void BeginRendering(void)
 {
     precheck();
-    felidae_graphics_start(BASIC.window, BASIC.graphics);
+    felidae_graphics_start(BASIC.window, BASIC.graphics, GetDeltaTime());
 }
 
 void FinishRendering(void)
 {
     precheck();
-    felidae_graphics_end(BASIC.window, BASIC.graphics);
+    felidae_graphics_end(BASIC.window, BASIC.graphics, GetDeltaTime());
 }
 
 bool ShouldWindowClose(void)

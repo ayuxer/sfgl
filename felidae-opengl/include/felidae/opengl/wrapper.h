@@ -15,11 +15,11 @@ felidae_payload_result felidae_graphics_create_context(
 );
 
 void felidae_graphics_start(
-    felidae_window_t *window, felidae_graphics_context_t *ctx
+    felidae_window_t *window, felidae_graphics_context_t *ctx, float delta
 );
 
 void felidae_graphics_end(
-    felidae_window_t *window, felidae_graphics_context_t *ctx
+    felidae_window_t *window, felidae_graphics_context_t *ctx, float delta
 );
 
 felidae_payload_result felidae_graphics_init(

@@ -12,7 +12,7 @@ constexpr const char DEFAULT_VSHADER[]
       "out vec4 fragColor; \n"
       "uniform mat4 mvp;\n"
       "void main() { \n"
-      "  gl_Position = vec4(vertexPosition, 1.0); \n"
+      "  gl_Position = mvp * vec4(vertexPosition, 1.0); \n"
       "  fragColor = vertexColor; \n"
       "  fragTexCoord = vertexTexCoord; \n"
       "} \n\0";
