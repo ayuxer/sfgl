@@ -6,10 +6,11 @@
 constexpr const char DEFAULT_VSHADER[]
     = "#version 460 core \n"
       "in vec3 vertexPosition; \n"
-      "in vec3 vertexColor; \n"
+      "in vec4 vertexColor; \n"
       "in vec2 vertexTexCoord; \n"
       "out vec2 fragTexCoord; \n"
-      "out vec3 fragColor; \n"
+      "out vec4 fragColor; \n"
+      "uniform mat4 mvp;\n"
       "void main() { \n"
       "  gl_Position = vec4(vertexPosition, 1.0); \n"
       "  fragColor = vertexColor; \n"
@@ -18,13 +19,13 @@ constexpr const char DEFAULT_VSHADER[]
 
 constexpr const char DEFAULT_FSHADER[]
     = "#version 460 core \n"
-      "in vec3 fragColor; \n"
+      "in vec4 fragColor; \n"
       "in vec2 fragTexCoord; \n"
       "out vec4 outputColor; \n"
       "uniform sampler2D texture0; \n"
       "void main() { \n"
       "  vec4 textureColor = texture(texture0, fragTexCoord); \n"
-      "  outputColor = textureColor; \n"
+      "  outputColor = fragColor; \n"
       "} \n\0";
 
 typedef unsigned int felidae_gl_id;
@@ -204,6 +205,7 @@ void felidae_name_vertex_attribute(
  */
 void felidae_bind_vao(felidae_gl_id id);
 void felidae_unbind_vao();
+void felidae_bind_vbo(felidae_gl_id id);
 
 /**
  * Arguments:

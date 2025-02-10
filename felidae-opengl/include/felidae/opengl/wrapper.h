@@ -8,10 +8,6 @@
 
 typedef struct felidae_graphics_context felidae_graphics_context_t;
 
-typedef struct {
-    float position[3];
-} felidae_vertex;
-
 felidae_payload_result felidae_check_api_extensions(void);
 
 felidae_payload_result felidae_graphics_create_context(

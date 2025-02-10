@@ -107,6 +107,7 @@ felidae_gl_id felidae_generate_vao(bool bind)
 }
 
 void felidae_bind_vao(felidae_gl_id id) { glBindVertexArray(id); }
+void felidae_bind_vbo(felidae_gl_id id) { glBindBuffer(GL_ARRAY_BUFFER, id); }
 
 void felidae_draw_vertices(
     enum felidae_primitive_kind primitive_kind, int starting_index,
@@ -131,19 +132,6 @@ void felidae_polygon_mode(enum felidae_polygon_mode_type mode)
 void felidae_unbind_vao() { glBindVertexArray(0); }
 void felidae_unbind_vbo() { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 void felidae_unbind_ebo() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
-
-void felidae_set_global_attribute_int(
-    felidae_gl_id program, const char *name, int value
-)
-{
-    glUniform1i(glGetUniformLocation(program, name), value);
-}
-void felidae_set_global_attribute_float(
-    felidae_gl_id program, const char *name, float value
-)
-{
-    glUniform1f(glGetUniformLocation(program, name), value);
-}
 
 struct felidae_gl_result felidae_load_texture(
     char *path, unsigned int mipmap_level, enum felidae_texture_wrap_mode wrap,

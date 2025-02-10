@@ -15,7 +15,8 @@ enum felidae_payload_result_kind {
     OUTDATED_EGL = 10,
     FAILED_TO_BIND_OPENGL = 11,
     CANT_OPEN_DISPLAY = 12,
-    OUT_OF_MEMORY = 13
+    OUT_OF_MEMORY = 13,
+    FAILED_TO_COMPILE_SHADERS = 14,
 };
 
 typedef struct {
