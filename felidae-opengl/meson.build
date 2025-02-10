@@ -4,6 +4,7 @@ if os == 'linux' or os == 'freebsd' or os == 'openbsd'
     'graphics.c',
     'wrapper.c',
     'context.c',
+    'batch.c',
     '../third_party/glad/src/gl.c',
     '../third_party/stb/src/image.c'
   )
