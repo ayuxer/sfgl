@@ -1,5 +1,6 @@
 #include "felidae/felidae.h"
 #include "bits/time.h"
+#include "felidae/opengl/camera.h"
 #include "felidae/opengl/context.h"
 #include "felidae/opengl/wrapper.h"
 #include "felidae/windowing/core.h"
@@ -12,10 +13,11 @@ struct felidae_basic_state {
     felidae_window_t *window;
     felidae_graphics_context_t *graphics;
     unsigned int max_fps;
-    struct timespec time;
+    struct timespec current_frame, previous_frame;
+    float frame_time;
 };
 
-struct felidae_basic_state BASIC = { 0 };
+struct felidae_basic_state BASIC = { 0, .frame_time = 1 };
 
 #define proceed(TYPE, FNC)                                                     \
     result = felidae_##FNC;                                                    \
@@ -58,16 +60,10 @@ void MakeWindow(
         )
     );
     proceed("graphics", graphics_create_context(&BASIC.graphics, BASIC.window));
-    clock_gettime(CLOCK_MONOTONIC, &BASIC.time);
+    clock_gettime(CLOCK_MONOTONIC, &BASIC.previous_frame);
 }
 
-float GetDeltaTime(void)
-{
-    struct timespec time;
-    clock_gettime(CLOCK_MONOTONIC, &time);
-    return (time.tv_sec - BASIC.time.tv_sec)
-        + 1e-9f * (time.tv_nsec - BASIC.time.tv_nsec);
-}
+float GetDeltaTime(void) { return BASIC.frame_time; }
 
 void SetFramerateLimit(unsigned int limit)
 {
@@ -91,6 +87,12 @@ void BeginRendering(void)
 void FinishRendering(void)
 {
     precheck();
+
+    clock_gettime(CLOCK_MONOTONIC, &BASIC.current_frame);
+    BASIC.frame_time
+        = (BASIC.current_frame.tv_nsec - BASIC.previous_frame.tv_nsec) * 1e-9;
+    BASIC.previous_frame = BASIC.current_frame;
+
     felidae_graphics_end(BASIC.window, BASIC.graphics, GetDeltaTime());
 }
 
@@ -151,4 +153,34 @@ felidae_graphics_context_t *GetGraphicsContext()
 {
     precheck(NULL);
     return BASIC.graphics;
+}
+
+felidae_camera_view *GetCameraView(void)
+{
+    precheck(NULL);
+    return felidae_wrapper_get_camera_view();
+}
+
+void CameraTurnLeft(float scale)
+{
+    precheck();
+    felidae_camera_turn_left(GetCameraView(), scale);
+}
+
+void CameraTurnRight(float scale)
+{
+    precheck();
+    felidae_camera_turn_right(GetCameraView(), scale);
+}
+
+void CameraTurnUp(float scale)
+{
+    precheck();
+    felidae_camera_turn_up(GetCameraView(), scale);
+}
+
+void CameraTurnDown(float scale)
+{
+    precheck();
+    felidae_camera_turn_down(GetCameraView(), scale);
 }

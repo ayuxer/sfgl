@@ -41,4 +41,14 @@ felidae_window_t *GetFelidaeWindow(void);
 
 felidae_graphics_context_t *GetGraphicsContext(void);
 
+felidae_camera_view *GetCameraView(void);
+
+void CameraTurnLeft(float scale);
+
+void CameraTurnRight(float scale);
+
+void CameraTurnUp(float scale);
+
+void CameraTurnDown(float scale);
+
 #endif

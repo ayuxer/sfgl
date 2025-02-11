@@ -1,10 +1,8 @@
 #include "felidae/opengl/wrapper.h"
-#include "cglm/cam.h"
-#include "cglm/mat4.h"
 #include "cglm/types.h"
-#include "cglm/vec3.h"
 #include "felidae/common/payload.h"
 #include "felidae/opengl/batch.h"
+#include "felidae/opengl/camera.h"
 #include "felidae/opengl/graphics.h"
 #include "felidae/windowing/core.h"
 
@@ -13,10 +11,11 @@
 #include <stddef.h>
 
 typedef struct {
-    felidae_gl_id placeholder_texture;
-} felidae_outer_state;
+    felidae_camera_view camera;
+} felidae_graphics_wrapper_state;
 
 static felidae_batch_renderer renderer = { 0 };
+static felidae_graphics_wrapper_state wrapper = { 0 };
 
 felidae_payload_result
 felidae_graphics_init(felidae_window_t *_, felidae_graphics_context_t *ctx)
@@ -24,7 +23,13 @@ felidae_graphics_init(felidae_window_t *_, felidae_graphics_context_t *ctx)
     gladLoadGL((GLADloadfunc)eglGetProcAddress);
     eglSwapInterval(ctx->display, 1);
     felidae_init_batch_renderer(&renderer, 5 * 1024);
+    wrapper.camera = felidae_create_camera_view((vec3) { 0, 0, 3.0f }, 45.f);
     return felidae_success();
+}
+
+felidae_camera_view *felidae_wrapper_get_camera_view()
+{
+    return &wrapper.camera;
 }
 
 void felidae_graphics_start(
@@ -35,19 +40,8 @@ void felidae_graphics_start(
         = felidae_get_window_dimensions(window);
     float width = dimensions.width, height = dimensions.height;
     glViewport(0, 0, width, height);
-
-    const float radius = 10.f;
-    float cam_x = sin(delta) * radius, cam_y = cos(delta) * radius;
-
-    mat4 mvp, projection, view, model = GLM_MAT4_IDENTITY_INIT;
-    glm_perspective(45.f, width / height, .1f, 100.f, projection);
-    glm_rotate(model, 50.0f, (float[3]) { .5f, 1.f, 0.f });
-    glm_lookat(
-        (vec3) { cam_x, 0.f, cam_y }, (vec3) { 0.f, 0.f, 0.f },
-        (vec3) { 0.f, 1.f, 0.f }, view
-    );
-    glm_mat4_mulN((mat4 *[3]) { &projection, &view, &model }, 3, mvp);
-
+    mat4 mvp;
+    felidae_camera_build_mvp(&wrapper.camera, width / height, mvp);
     felidae_set_mvp(&renderer, mvp);
 }
 

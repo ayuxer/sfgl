@@ -5,6 +5,7 @@ if os == 'linux' or os == 'freebsd' or os == 'openbsd'
     'wrapper.c',
     'context.c',
     'batch.c',
+    'camera.c',
     '../third_party/glad/src/gl.c',
     '../third_party/stb/src/image.c'
   )
